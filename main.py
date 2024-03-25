@@ -3,7 +3,6 @@ from dotenv import load_dotenv
 import os
 import requests
 
-
 load_dotenv()
 
 def upload_reel(daily_count):
@@ -50,24 +49,30 @@ def update_daily_count(count):
         ]
     }
     response = requests.put(url, headers=headers, json=data)
-    
+
     if response.status_code == 200:
         print('DAILY_COUNT environment variable updated on Render')
     else:
         print('Failed to update DAILY_COUNT environment variable on Render')
 
 def main():
-    # Read the current daily count from a file
+    # Read the current daily count
     daily_count = read_daily_count()
 
     # Increment the daily count
     daily_count += 1
 
-    # Update the file with the new daily count
+    # Update the daily count on Render
     update_daily_count(daily_count)
 
-    # Upload the reel to Instagram
-    upload_reel(daily_count)
+    try:
+        # Upload the reel to Instagram
+        upload_reel(daily_count)
+
+    except Exception as e:
+        print(f'An error occurred: {str(e)}')
+        # Handle the exception or log the error
+        # ...
 
 if __name__ == "__main__":
     main()
