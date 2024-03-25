@@ -1,9 +1,18 @@
 from instagrapi import Client
 from dotenv import load_dotenv
 import os
+from google.oauth2.service_account import Credentials
+from googleapiclient.discovery import build
+import json
 
 
 load_dotenv()
+# Google Sheets settings
+SHEET_ID = '1eTxDe5y7OdMU2sUNQJlyBve5MMxczBycGQNyK1u_mdo'
+SHEET_NAME = 'daily_count_sheet'
+RANGE_NAME = 'A2:B2'  # Assuming your keys and values are in columns A and B
+
+
 
 def upload_reel(daily_count):
     # Authenticate with Instagram
@@ -21,33 +30,40 @@ def upload_reel(daily_count):
     #     links=[f"https://www.instagram.com/p/{media.code}/"]
     # )
 
-def read_daily_count():
-    count = os.getenv('DAILY_COUNT')
-    if count is None:
-        count = 1
-    else:
-        count = int(count)
-    return count
 
+# Authenticate with the Google Sheets API
+# Get the service account JSON from an environment variable
+service_account_info = json.loads(os.environ['GOOGLE_APPLICATION_CREDENTIALS_JSON'])
+
+creds = Credentials.from_service_account_info(service_account_info)
+service = build('sheets', 'v4', credentials=creds)
+
+# Function to read the daily count
+def read_daily_count():
+    result = service.spreadsheets().values().get(spreadsheetId=SHEET_ID,
+                                                  range=RANGE_NAME).execute()
+    values = result.get('values', [])
+
+    # Find the daily_count value
+    if not values:
+        return 1  # Default value if not found or list is empty
+    if values[0][0] == 'DAILY_COUNT':
+        return int(values[0][1])
+    return 1
+
+# Function to update the daily count
 def update_daily_count(count):
-    # Update the DAILY_COUNT environment variable in the runtime
-    os.environ['DAILY_COUNT'] = str(count)
-    
-    # Read the existing contents of the .env file
-    with open('.env', 'r') as f:
-        lines = f.readlines()
-    
-    # Update the DAILY_COUNT variable in the lines
-    updated_lines = []
-    for line in lines:
-        if line.startswith('DAILY_COUNT='):
-            updated_lines.append(f'DAILY_COUNT={count}\n')
-        else:
-            updated_lines.append(line)
-    
-    # Write the updated contents back to the .env file
-    with open('.env', 'w') as f:
-        f.writelines(updated_lines)
+    value_range_body = {
+        "values": [
+            ['DAILY_COUNT', count]
+        ]
+    }
+    service.spreadsheets().values().update(
+        spreadsheetId=SHEET_ID,
+        range='A2:B2',  # Specify the exact cells for daily_count
+        valueInputOption='RAW',
+        body=value_range_body
+    ).execute()
 
 def main():
     # Read the current daily count from a file
