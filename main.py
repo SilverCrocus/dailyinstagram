@@ -1,6 +1,7 @@
 from instagrapi import Client
 from dotenv import load_dotenv
 import os
+import requests
 
 
 load_dotenv()
@@ -21,33 +22,39 @@ def upload_reel(daily_count):
     #     links=[f"https://www.instagram.com/p/{media.code}/"]
     # )
 
+# Load environment variables from Render
+DAILY_COUNT = os.getenv('DAILY_COUNT')
+RENDER_API_KEY = os.getenv('RENDER_API_KEY')
+RENDER_SERVICE_ID = os.getenv('RENDER_SERVICE_ID')
+
 def read_daily_count():
-    count = os.getenv('DAILY_COUNT')
-    if count is None:
+    if DAILY_COUNT is None:
         count = 1
     else:
-        count = int(count)
+        count = int(DAILY_COUNT)
     return count
 
 def update_daily_count(count):
-    # Update the DAILY_COUNT environment variable in the runtime
-    os.environ['DAILY_COUNT'] = str(count)
+    # Update the DAILY_COUNT environment variable on Render
+    url = f'https://api.render.com/v1/services/{RENDER_SERVICE_ID}/env-vars'
+    headers = {
+        'Authorization': f'Bearer {RENDER_API_KEY}',
+        'Content-Type': 'application/json'
+    }
+    data = {
+        'envVars': [
+            {
+                'key': 'DAILY_COUNT',
+                'value': str(count)
+            }
+        ]
+    }
+    response = requests.put(url, headers=headers, json=data)
     
-    # Read the existing contents of the .env file
-    with open('.env', 'r') as f:
-        lines = f.readlines()
-    
-    # Update the DAILY_COUNT variable in the lines
-    updated_lines = []
-    for line in lines:
-        if line.startswith('DAILY_COUNT='):
-            updated_lines.append(f'DAILY_COUNT={count}\n')
-        else:
-            updated_lines.append(line)
-    
-    # Write the updated contents back to the .env file
-    with open('.env', 'w') as f:
-        f.writelines(updated_lines)
+    if response.status_code == 200:
+        print('DAILY_COUNT environment variable updated on Render')
+    else:
+        print('Failed to update DAILY_COUNT environment variable on Render')
 
 def main():
     # Read the current daily count from a file
