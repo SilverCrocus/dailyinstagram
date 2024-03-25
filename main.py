@@ -22,16 +22,32 @@ def upload_reel(daily_count):
     # )
 
 def read_daily_count():
-    try:
-        with open("daily_count.txt", "r") as file:
-            count = int(file.read())
-    except FileNotFoundError:
-        count = 0
+    count = os.getenv('DAILY_COUNT')
+    if count is None:
+        count = 1
+    else:
+        count = int(count)
     return count
 
 def update_daily_count(count):
-    with open("daily_count.txt", "w") as file:
-        file.write(str(count))
+    # Update the DAILY_COUNT environment variable in the runtime
+    os.environ['DAILY_COUNT'] = str(count)
+    
+    # Read the existing contents of the .env file
+    with open('.env', 'r') as f:
+        lines = f.readlines()
+    
+    # Update the DAILY_COUNT variable in the lines
+    updated_lines = []
+    for line in lines:
+        if line.startswith('DAILY_COUNT='):
+            updated_lines.append(f'DAILY_COUNT={count}\n')
+        else:
+            updated_lines.append(line)
+    
+    # Write the updated contents back to the .env file
+    with open('.env', 'w') as f:
+        f.writelines(updated_lines)
 
 def main():
     # Read the current daily count from a file
