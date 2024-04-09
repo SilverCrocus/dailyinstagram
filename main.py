@@ -10,7 +10,7 @@ load_dotenv()
 # Google Sheets settings
 SHEET_ID = '1eTxDe5y7OdMU2sUNQJlyBve5MMxczBycGQNyK1u_mdo'
 SHEET_NAME = 'daily_count_sheet'
-RANGE_NAME = 'A3:B3'  # Assuming your keys and values are in columns A and B
+RANGE_NAME = 'A2:B2'  # Assuming your keys and values are in columns A and B
 
 # Authenticate with the Google Sheets API
 # Get the service account JSON from an environment variable
@@ -88,7 +88,7 @@ def update_daily_count(count):
     }
     service.spreadsheets().values().update(
         spreadsheetId=SHEET_ID,
-        range='A3:B3',  # Specify the exact cells for daily count
+        range='A2:B2',  # Specify the exact cells for daily count
         valueInputOption='RAW',
         body=value_range_body
     ).execute()
