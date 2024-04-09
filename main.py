@@ -14,7 +14,16 @@ RANGE_NAME = 'A3:B3'  # Assuming your keys and values are in columns A and B
 
 # Authenticate with the Google Sheets API
 # Get the service account JSON from an environment variable
+# Parse the JSON string from the environment variable
+# Get the JSON string from the environment variable
+# Get the JSON string from the environment variable
+# service_account_info_str = os.getenv('GOOGLE_APPLICATION_CREDENTIALS_JSON')
+
+# # Parse the JSON string into a Python dictionary
+# service_account_info = json.loads(service_account_info_str)
 service_account_info = json.loads(os.getenv('GOOGLE_APPLICATION_CREDENTIALS_JSON'))
+
+print(service_account_info)
 
 creds = Credentials.from_service_account_info(service_account_info)
 service = build('sheets', 'v4', credentials=creds)
